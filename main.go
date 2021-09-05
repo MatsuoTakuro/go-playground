@@ -1,26 +1,45 @@
-// ヒント？https://qiita.com/tenntenn/items/eac962a49c56b2b15ee8#%E5%9F%8B%E3%82%81%E8%BE%BC%E3%81%BF%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%9F%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%95%E3%82%A7%E3%83%BC%E3%82%B9%E3%81%AE%E5%8B%95%E7%9A%84%E5%AE%9F%E8%A3%85
+// 関数handleFunc型の周りの簡略化
+
+// 公式ドキュメント https://pkg.go.dev/net/http#pkg-index
+// 参考記事 https://qiita.com/tenntenn/items/eac962a49c56b2b15ee8
+
 package main
 
 import "fmt"
 
-type Hoge interface {
-	M()
-	N()
-}
-type fuga struct{ Hoge } // インタフェースを埋め込む
-
-func (f fuga) M() {
-	fmt.Println("Hi") // Mの振る舞いを変える
-	// f.Hoge.M()        // 元のメソッドを呼ぶ
+// (http.Handlerの簡略版)
+// Doメソッドを持つインタフェース型A
+type A interface {
+	Do()
 }
 
-func hiHoge(h Hoge) Hoge {
-	return fuga{h} // 構造体を作る
+// (http.HandlerFuncの簡略版)
+// func()という関数型B
+type B func()
+
+// B型の関数bのDoメソッド
+// つまり、B型の関数("b")は、インタフェースA型を実装している
+// さらに、メソッド内で自身の関数("b()")を呼び出している
+func (b B) Do() {
+	b()
+}
+
+// (http.Handleの簡略版)
+// 関数C
+// 引数にA型のインタフェース("a")を持つ
+func C(s string, a A) {
+	a.Do()
+	fmt.Println("C func is called")
 }
 func main() {
-	// ???
-	var h Hoge
-	hs := hiHoge(h)
-	hs.M()
-	hs.N()
+	// B型の関数はA型のインタフェースを実装しているため、
+	// A型のインタフェースにB型の関数を代入できる
+	// 右辺では、"fmt.Println("B func is called")"という値を持つ無名関数を、関数型Bの関数リテラルとしてキャストしている
+	// キャストされた関数型BをA型のインタフェースaに代入している
+	var a A = B(func() {
+		fmt.Println("B func is called")
+	})
+	C("/", a)
+	// このmain関数での処理を簡略化した関数が、http.HandleFunc
+
 }
