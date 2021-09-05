@@ -40,6 +40,6 @@ func main() {
 		fmt.Println("B func is called")
 	})
 	C("/", a)
-	// このmain関数での処理を簡略化した関数が、http.HandleFunc
+	// このmain関数での処理を簡略化した関数が、http.HandleFunc(pattern string, handler func(ResponseWriter, *Request))
 
 }
