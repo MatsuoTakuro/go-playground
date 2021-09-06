@@ -2,32 +2,31 @@ package main
 
 import (
 	"fmt"
-	"time"
 )
 
+func restFunc() <-chan int {
+	// 1. チャネルを定義
+	result := make(chan int)
+
+	// 2. ゴールーチンを立てて
+	go func() {
+		defer close(result) // 4. closeするのを忘れずに
+
+		// 3. その中で、resultチャネルに値を送る処理をする
+		// (例)
+		for i := 0; i < 5; i++ {
+			result <- 1
+		}
+	}()
+
+	// 5. 返り値にresultチャネルを返す
+	return result
+}
+
 func main() {
-
-	for i := 0; i < 3; i++ {
-		/*
-		   go func() {
-		       fmt.Println(i)
-		   }()
-		*/
-		// こうなってしまう原因としては、iの値として「メインゴールーチン中のイテレータ」を参照していることです。
-		// そこで「新ゴールーチン起動時にiの値を引数として渡す」=「iのスコープを新ゴールーチンの中に狭める」というやり方で、iが正しい値を見れるようにしましょう。
-
-		go func(i int) {
-			fmt.Println(i)
-		}(i)
-		time.Sleep(100 * time.Millisecond)
-		// 	ここから得られる教訓としては、「そのゴールーチンよりも広いスコープを持つ変数は参照しない方が無難」ということです。
-		// これを実現するための方法として、「値を引数に代入して渡す」というのはよく使われます。
+	// result := restFunc()
+	for i := 0; i < 5; i++ {
+		// fmt.Println(<-result)
+		fmt.Println(<-restFunc())
 	}
-	/*
-	   (実行結果)
-	   0
-	   2
-	   1
-	   (0,1,2が順不同で出力)
-	*/
 }
