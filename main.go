@@ -2,31 +2,20 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
-func restFunc() <-chan int {
-	// 1. チャネルを定義
-	result := make(chan int)
-
-	// 2. ゴールーチンを立てて
-	go func() {
-		defer close(result) // 4. closeするのを忘れずに
-
-		// 3. その中で、resultチャネルに値を送る処理をする
-		// (例)
-		for i := 0; i < 5; i++ {
-			result <- 1
-		}
-	}()
-
-	// 5. 返り値にresultチャネルを返す
-	return result
-}
-
 func main() {
-	// result := restFunc()
-	for i := 0; i < 5; i++ {
-		// fmt.Println(<-result)
-		fmt.Println(<-restFunc())
+	ch := make(chan int)
+	go func() {
+		var result int
+		time.Sleep(2 * time.Second)
+		ch <- result
+	}()
+	select {
+	case <-time.After(1 * time.Second):
+		fmt.Println("Time out")
+	case result := <-ch:
+		fmt.Println(result)
 	}
 }
