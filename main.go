@@ -35,7 +35,7 @@ func main() {
 		}
 		if !info.IsDir() {
 			filePath := path
-			fmt.Println(filePath)
+			scanFile(storePath, filePath)
 		}
 		return nil
 	})
@@ -45,7 +45,7 @@ func main() {
 	}
 }
 
-func scanFile(filePath string) {
+func scanFile(storePath, filePath string) {
 	ctx := context.Background()
 
 	// Creates a client.
