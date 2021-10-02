@@ -4,10 +4,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
+
+	vision "cloud.google.com/go/vision/apiv1"
 )
 
 func main() {
@@ -20,7 +24,6 @@ func main() {
 	}
 
 	var storePath string
-
 	err = filepath.Walk(".", func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
@@ -39,5 +42,38 @@ func main() {
 	if err != nil {
 		fmt.Printf("error walking the path %q: %v\n", filesPath, err)
 		return
+	}
+}
+
+func scanFile(filePath string) {
+	ctx := context.Background()
+
+	// Creates a client.
+	client, err := vision.NewImageAnnotatorClient(ctx)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+	defer client.Close()
+
+	// Sets the name of the image file to annotate.
+	filename := filePath
+
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatalf("Failed to read file: %v", err)
+	}
+	defer file.Close()
+	image, err := vision.NewImageFromReader(file)
+	if err != nil {
+		log.Fatalf("Failed to create image: %v", err)
+	}
+
+	texts, err := client.DetectTexts(ctx, image, nil, 10)
+	if err != nil {
+		log.Fatalf("Failed to detect labels: %v", err)
+	}
+
+	for _, text := range texts {
+		fmt.Println(text.Description)
 	}
 }
