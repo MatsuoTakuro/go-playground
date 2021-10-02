@@ -10,47 +10,34 @@ import (
 	"path/filepath"
 )
 
-func prepareTestDirTree(tree string) (string, error) {
-	tmpDir, err := os.MkdirTemp("", "")
-	if err != nil {
-		return "", fmt.Errorf("error creating temp directory: %v\n", err)
-	}
-
-	err = os.MkdirAll(filepath.Join(tmpDir, tree), 0755)
-	if err != nil {
-		os.RemoveAll(tmpDir)
-		return "", err
-	}
-
-	return tmpDir, nil
-}
-
 func main() {
-	tmpDir, err := prepareTestDirTree("dir/to/walk/skip")
+
+	crPath, _ := os.Getwd()
+	filesPath := fmt.Sprintf("%v/files/", crPath)
+	err := os.Chdir(filesPath)
 	if err != nil {
-		fmt.Printf("unable to create test dir tree: %v\n", err)
-		return
+		fmt.Printf("unable to change tmpDir path : %v\n", err)
 	}
-	defer os.RemoveAll(tmpDir)
-	os.Chdir(tmpDir)
 
-	subDirToSkip := "skip"
+	var storePath string
 
-	fmt.Println("On Unix:")
 	err = filepath.Walk(".", func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
 			return err
 		}
-		if info.IsDir() && info.Name() == subDirToSkip {
-			fmt.Printf("skipping a dir without errors: %+v \n", info.Name())
-			return filepath.SkipDir
+		if info.IsDir() && path != "." {
+			storePath = path
+			fmt.Println(storePath)
 		}
-		fmt.Printf("visited file or dir: %q\n", path)
+		if !info.IsDir() {
+			filePath := path
+			fmt.Println(filePath)
+		}
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("error walking the path %q: %v\n", tmpDir, err)
+		fmt.Printf("error walking the path %q: %v\n", filesPath, err)
 		return
 	}
 }
