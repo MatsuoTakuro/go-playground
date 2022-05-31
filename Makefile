@@ -1,2 +1,2 @@
 run:
-	go build && go run playground
+	@go build && go run playground
